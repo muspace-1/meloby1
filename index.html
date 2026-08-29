@@ -130,7 +130,7 @@
             100% { box-shadow: 0 0 30px rgba(2, 132, 199, 0.8); }
         }
 
-        /* ชื่อร้านสีวิ่งสุดละมุน */
+        /* ชื่อร้านสีวิ่ง (Gradient Animation) แบบจัดเต็ม */
         .shop-name {
             font-size: 27px;
             font-weight: 600;
@@ -143,6 +143,11 @@
             letter-spacing: 0.5px;
             position: relative;
             z-index: 3;
+        }
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         /* คำโปรยเฟดอินเนียนๆ */
@@ -380,7 +385,7 @@
 
         <div id="statusBadge" class="status-badge" style="background-color: #d1fae5; color: #065f46;">
             <span id="statusDot" class="status-dot" style="background-color: #10b981;"></span>
-            <span id="statusText">กำลังโหลดสถานะ...</span>
+            <span id="statusText">เปิดรับออร์เดอร์ปกติ</span>
         </div>
 
         <a href="https://lin.ee/5mrH0GV" target="_blank" class="line-btn">
@@ -392,7 +397,7 @@
     <!-- Modal Popup แอดมินลับ -->
     <div id="statusModal" class="modal-overlay">
         <div class="modal">
-            <h3>แก้ไขสถานะร้านค้า (ระบบกลาง)</h3>
+            <h3>แก้ไขสถานะร้านค้า</h3>
             <label for="statusInput">ข้อความสถานะ:</label>
             <input type="text" id="statusInput" placeholder="พิมพ์ข้อความสถานะ...">
             
@@ -406,19 +411,12 @@
 
             <div class="modal-btns">
                 <button class="modal-btn btn-cancel" onclick="closeModal()">ยกเลิก</button>
-                <button class="modal-btn btn-save" onclick="saveStatus()">บันทึกอัปเดต</button>
+                <button class="modal-btn btn-save" onclick="saveStatus()">บันทึก</button>
             </div>
         </div>
     </div>
 
     <script>
-        /* 
-          ตั้งค่าเชื่อมต่อฐานข้อมูลกลาง (JSONBin.io ฟรี) 
-          เพื่อให้ทุกคนเห็นสถานะตรงกัน 
-        */
-        const BIN_ID = "6712b7aead19ca34f8c14833"; // ใส่รหัส Bin ของคุณที่นี่ (ตอนนี้ใช้ไอดีจำลองมาตรฐาน)
-        const API_KEY = ""; // ใส่ Master Key (ถ้ามี) หรือเว้นว่างไว้ถ้าใช้แบบสาธารณะ
-
         const statusBadge = document.getElementById('statusBadge');
         const statusModal = document.getElementById('statusModal');
         const statusInput = document.getElementById('statusInput');
@@ -435,34 +433,20 @@
             statusDot.style.setProperty('--pulse-color', color);
         }
 
-        // ดึงข้อมูลสถานะล่าสุดจากเซิร์ฟเวอร์กลางทุกครั้งที่เปิดเว็บ
-        async function fetchStatus() {
-            try {
-                let response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
-                    headers: API_KEY ? { 'X-Master-Key': API_KEY } : {}
-                });
-                let data = await response.json();
-                let record = data.record;
-
-                if(record && record.text) {
-                    statusText.innerText = record.text;
-                    selectedBg = record.bg || "#d1fae5";
-                    selectedColor = record.color || "#065f46";
-                    selectedDot = record.dot || "#10b981";
-
-                    statusBadge.style.backgroundColor = selectedBg;
-                    statusBadge.style.color = selectedColor;
-                    statusDot.style.backgroundColor = selectedDot;
-                    updatePulseColor(selectedDot);
-                }
-            } catch (error) {
-                // กรณีดึงข้อมูลออนไลน์ไม่ได้ ให้แสดงค่าเริ่มต้น
-                statusText.innerText = "เปิดรับออร์เดอร์ปกติ";
-                updatePulseColor("#10b981");
-            }
+        // โหลดข้อมูลจาก LocalStorage ทันทีโดยไม่ติดขัด
+        if(localStorage.getItem('shop_status_text')) {
+            statusText.innerText = localStorage.getItem('shop_status_text');
+            selectedBg = localStorage.getItem('shop_status_bg') || selectedBg;
+            selectedColor = localStorage.getItem('shop_status_color') || selectedColor;
+            selectedDot = localStorage.getItem('shop_status_dot') || selectedDot;
+            
+            statusBadge.style.backgroundColor = selectedBg;
+            statusBadge.style.color = selectedColor;
+            statusDot.style.backgroundColor = selectedDot;
+            updatePulseColor(selectedDot);
+        } else {
+            updatePulseColor(selectedDot);
         }
-
-        fetchStatus();
 
         colorOpts.forEach(opt => {
             opt.addEventListener('click', () => {
@@ -497,8 +481,7 @@
             statusModal.classList.remove('active');
         }
 
-        // บันทึกสถานะใหม่ขึ้นเซิร์ฟเวอร์กลางเพื่อให้ทุกคนเห็นตรงกัน
-        async function saveStatus() {
+        function saveStatus() {
             const newText = statusInput.value.trim();
             if(newText) {
                 statusText.innerText = newText;
@@ -507,25 +490,11 @@
                 statusDot.style.backgroundColor = selectedDot;
                 updatePulseColor(selectedDot);
 
-                let newData = {
-                    text: newText,
-                    bg: selectedBg,
-                    color: selectedColor,
-                    dot: selectedDot
-                };
-
-                try {
-                    await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            ...(API_KEY ? { 'X-Master-Key': API_KEY } : {})
-                        },
-                        body: JSON.stringify(newData)
-                    });
-                } catch (error) {
-                    console.error("บันทึกข้อมูลไม่สำเร็จ");
-                }
+                // บันทึกลงในเครื่องทันที
+                localStorage.setItem('shop_status_text', newText);
+                localStorage.setItem('shop_status_bg', selectedBg);
+                localStorage.setItem('shop_status_color', selectedColor);
+                localStorage.setItem('shop_status_dot', selectedDot);
             }
             closeModal();
         }
