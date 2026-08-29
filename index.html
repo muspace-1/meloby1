@@ -13,7 +13,8 @@
             font-family: 'Prompt', sans-serif;
         }
         body {
-            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 50%, #7dd3fc 100%);
+            /* พื้นหลังสีขาวสว่างสำหรับให้ก้อนสีเบลอดูโดดเด่น */
+            background-color: #f0f9ff; 
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -21,41 +22,87 @@
             padding: 20px;
             color: #1e3a8a;
             overflow: hidden;
+            position: relative;
         }
+
+        /* 1. เอฟเฟกต์ก้อนสีเบลอเคลื่อนไหว (Moving Blur Blobs) */
+        .blobs {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.6;
+            animation: moveBlob 12s infinite alternate ease-in-out;
+        }
+        .blob-1 { width: 300px; height: 300px; background: #7dd3fc; top: -10%; left: -10%; }
+        .blob-2 { width: 350px; height: 350px; background: #bae6fd; bottom: -20%; right: -10%; animation-delay: -3s; }
+        .blob-3 { width: 250px; height: 250px; background: #38bdf8; top: 40%; left: 50%; animation-delay: -6s; opacity: 0.4; }
+
+        @keyframes moveBlob {
+            100% { transform: translate(50px, 30px) scale(1.1); }
+        }
+
+        /* 2. กรอบการ์ดลอยขึ้นลง (Floating Card) */
         .card {
-            background: rgba(255, 255, 255, 0.88);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
             border-radius: 28px;
-            padding: 40px 30px;
+            padding: 40px 30px 35px 30px;
             width: 100%;
             max-width: 400px;
             text-align: center;
-            box-shadow: 0 20px 40px rgba(14, 165, 233, 0.15);
+            box-shadow: 0 20px 40px rgba(14, 165, 233, 0.1);
             position: relative;
+            z-index: 1;
+            animation: cardFloat 6s ease-in-out infinite;
         }
-        /* Floating Decorations */
-        .decor {
-            position: absolute;
-            animation: float 3s ease-in-out infinite;
-            z-index: 0;
-            user-select: none;
-            pointer-events: none;
-        }
-        .decor-1 { top: -15px; left: -10px; font-size: 28px; animation-delay: 0s; }
-        .decor-2 { top: 35%; right: -15px; font-size: 24px; animation-delay: 1s; }
-        .decor-3 { bottom: 20px; left: -15px; font-size: 22px; animation-delay: 2s; opacity: 0.8; }
-        @keyframes float {
+        @keyframes cardFloat {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+            50% { transform: translateY(-8px); }
         }
 
+        /* 3. ไอคอนตกแต่งแบบทึบ (Solid Icons) */
+        .decor {
+            position: absolute;
+            fill: rgba(255, 255, 255, 0.9);
+            z-index: 2;
+            pointer-events: none;
+            animation: floatDecor 4s ease-in-out infinite alternate;
+        }
+        .decor-bubble {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            box-shadow: inset -2px -2px 6px rgba(255,255,255,0.4), 0 4px 8px rgba(0,0,0,0.05);
+        }
+        .d-1 { top: -15px; left: -10px; width: 28px; height: 28px; animation-delay: 0s; }
+        .d-2 { top: 35%; right: -15px; width: 14px; height: 14px; animation-delay: 1s; }
+        .d-3 { bottom: 25px; left: -15px; width: 22px; height: 22px; animation-delay: 2s; }
+        @keyframes floatDecor {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(-10px) scale(1.05); }
+        }
+
+        /* 4. รูปโปรไฟล์เด้งดึ๋งตอนโหลด (Pop-in) */
         .profile-container {
             position: relative;
             width: 130px;
             height: 130px;
             margin: 0 auto 24px auto;
-            z-index: 1;
+            z-index: 3;
+            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            opacity: 0;
+            transform: scale(0);
+        }
+        @keyframes popIn {
+            to { transform: scale(1); opacity: 1; }
         }
         .profile-img {
             width: 100%;
@@ -65,6 +112,8 @@
             border: 4px solid #ffffff;
             box-shadow: 0 0 20px rgba(56, 189, 248, 0.6);
         }
+
+        /* ชื่อร้านสีวิ่ง */
         .shop-name {
             font-size: 26px;
             font-weight: 600;
@@ -76,15 +125,12 @@
             animation: gradientShift 6s ease infinite;
             letter-spacing: 0.5px;
             position: relative;
-            z-index: 1;
+            z-index: 3;
         }
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+
+        /* 5. คำโปรยค่อยๆ เฟดขึ้นมา (Fade-in) */
         .tagline {
-            background: #f0f9ff;
+            background: rgba(240, 249, 255, 0.8);
             border: 1px solid #e0f2fe;
             color: #0369a1;
             padding: 12px 18px;
@@ -94,37 +140,57 @@
             margin-bottom: 20px;
             line-height: 1.5;
             position: relative;
-            z-index: 1;
+            z-index: 3;
+            opacity: 0;
+            animation: fadeIn 1s ease-out forwards;
+            animation-delay: 0.4s;
         }
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* ป้ายสถานะแบบเล็กกะทัดรัด */
         .status-badge {
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
-            padding: 5px 14px; /* ปรับขนาดกรอบให้เล็กลง */
+            padding: 5px 14px; /* ขนาดเล็กลง */
             border-radius: 50px;
-            font-size: 12px; /* ปรับขนาดฟอนต์ให้เล็กลง */
+            font-size: 12px; /* ฟอนต์เล็กลง */
             font-weight: 500;
-            margin-bottom: 30px;
+            margin: 0 auto 30px auto;
             cursor: pointer;
             user-select: none;
             transition: all 0.2s ease;
             box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-            width: fit-content; /* ปรับขนาดอัตโนมัติตามความยาวข้อความ */
+            width: fit-content; /* ยืดหดตามข้อความ */
             max-width: 100%;
             position: relative;
-            z-index: 1;
+            z-index: 3;
         }
         .status-badge:hover {
             transform: scale(1.03);
         }
+
+        /* 6. ไฟกะพริบสถานะ (Breathing Pulse) */
         .status-dot {
-            width: 8px; /* ปรับจุดวงกลมให้เล็กลงให้สมส่วน */
+            width: 8px;
             height: 8px;
             border-radius: 50%;
             display: inline-block;
             flex-shrink: 0;
+            /* ตัวแปรสีจะถูกเปลี่ยนจาก JS */
+            --pulse-color: #10b981; 
+            animation: pulse 2s infinite;
         }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 var(--pulse-color); }
+            70% { box-shadow: 0 0 0 6px transparent; }
+            100% { box-shadow: 0 0 0 0 transparent; }
+        }
+
+        /* 7. ปุ่ม Line พร้อมแสงสะท้อนวิ่งผ่าน (Shine Sweep) */
         .line-btn {
             display: flex;
             align-items: center;
@@ -140,11 +206,29 @@
             box-shadow: 0 8px 20px rgba(2, 132, 199, 0.3);
             transition: all 0.25s ease;
             position: relative;
-            z-index: 1;
+            z-index: 3;
+            overflow: hidden; /* บังแสงที่วิ่งเกินกรอบ */
+            opacity: 0;
+            animation: fadeIn 1s ease-out forwards;
+            animation-delay: 0.6s;
         }
         .line-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 12px 25px rgba(2, 132, 199, 0.4);
+        }
+        /* แสงสะท้อน */
+        .line-btn::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-25deg);
+            animation: shine 4s infinite;
+        }
+        @keyframes shine {
+            0% { left: -100%; }
+            20%, 100% { left: 200%; }
         }
 
         /* Modal Popup */
@@ -239,13 +323,26 @@
 </head>
 <body>
 
-    <div class="card">
-        <!-- Floating Icons -->
-        <span class="decor decor-1">✨</span>
-        <span class="decor decor-2">🫧</span>
-        <span class="decor decor-3">✨</span>
+    <!-- พื้นหลังก้อนสีเบลอ -->
+    <div class="blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
 
-        <!-- Profile Image -->
+    <div class="card">
+        <!-- ดาวทึบ SVG (Star) -->
+        <svg class="decor d-1" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z"/>
+        </svg>
+        <!-- ฟองอากาศ CSS -->
+        <div class="decor decor-bubble d-2"></div>
+        <!-- ดาวทึบ SVG (Star) -->
+        <svg class="decor d-3" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z"/>
+        </svg>
+
+        <!-- รูปโปรไฟล์ -->
         <div class="profile-container">
             <img src="logo.JPG" alt="Logo" class="profile-img" onerror="this.src='https://via.placeholder.com/130/bae6fd/ffffff?text=Logo'">
         </div>
@@ -302,6 +399,11 @@
         let selectedColor = "#065f46";
         let selectedDot = "#10b981";
 
+        // ฟังก์ชันกำหนดสีให้ตัวแปร CSS ของจุดสถานะ (เพื่อทำเอฟเฟกต์ไฟกะพริบ)
+        function updatePulseColor(color) {
+            statusDot.style.setProperty('--pulse-color', color);
+        }
+
         if(localStorage.getItem('shop_status_text')) {
             statusText.innerText = localStorage.getItem('shop_status_text');
             selectedBg = localStorage.getItem('shop_status_bg') || selectedBg;
@@ -311,6 +413,9 @@
             statusBadge.style.backgroundColor = selectedBg;
             statusBadge.style.color = selectedColor;
             statusDot.style.backgroundColor = selectedDot;
+            updatePulseColor(selectedDot);
+        } else {
+            updatePulseColor(selectedDot); // โหลดครั้งแรกตั้งค่าไฟกะพริบสีเขียว
         }
 
         colorOpts.forEach(opt => {
@@ -352,6 +457,7 @@
                 statusBadge.style.backgroundColor = selectedBg;
                 statusBadge.style.color = selectedColor;
                 statusDot.style.backgroundColor = selectedDot;
+                updatePulseColor(selectedDot); // อัปเดตสีไฟกะพริบ
 
                 localStorage.setItem('shop_status_text', newText);
                 localStorage.setItem('shop_status_bg', selectedBg);
