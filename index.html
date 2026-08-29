@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ᨳꪔׄeloྀིbyᩍ っ - ติดต่อร้านค้า</title>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- นำเข้า Firebase แบบใช้งานง่าย -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <style>
         * {
             box-sizing: border-box;
@@ -24,7 +29,6 @@
             position: relative;
         }
 
-        /* ก้อนสีเบลอเคลื่อนไหวอลังการ */
         .blobs {
             position: fixed;
             top: 0; left: 0;
@@ -49,7 +53,6 @@
             100% { transform: translate(-30px, 40px) scale(0.95); }
         }
 
-        /* กรอบการ์ดหลักนิ่งสนิท ล็อกตำแหน่งเสถียร */
         .card {
             background: rgba(255, 255, 255, 0.78);
             backdrop-filter: blur(20px);
@@ -65,7 +68,6 @@
             z-index: 1;
         }
 
-        /* ไอคอนตกแต่งรอบการ์ด (Solid Icons) */
         .decor {
             position: absolute;
             fill: rgba(255, 255, 255, 0.95);
@@ -88,7 +90,6 @@
             100% { transform: translateY(-12px) rotate(15deg) scale(1.08); }
         }
 
-        /* รูปโปรไฟล์นิ่งเสถียร */
         .profile-container {
             position: relative;
             width: 135px;
@@ -114,7 +115,6 @@
             100% { box-shadow: 0 0 30px rgba(2, 132, 199, 0.8); }
         }
 
-        /* ชื่อร้านสีวิ่ง */
         .shop-name {
             font-size: 27px;
             font-weight: 600;
@@ -136,7 +136,6 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* คำโปรย */
         .tagline {
             background: rgba(240, 249, 255, 0.85);
             border: 1px solid #e0f2fe;
@@ -151,7 +150,6 @@
             z-index: 3;
         }
 
-        /* ป้ายสถานะกะทัดรัด ยืดหดตามข้อความ */
         .status-badge {
             display: inline-flex;
             align-items: center;
@@ -176,7 +174,6 @@
             box-shadow: 0 6px 15px rgba(0,0,0,0.08);
         }
 
-        /* ไฟกะพริบสถานะแบบจังหวะลมหายใจ */
         .status-dot {
             width: 8.5px;
             height: 8.5px;
@@ -192,7 +189,6 @@
             100% { box-shadow: 0 0 0 0 transparent; }
         }
 
-        /* ปุ่ม Line พร้อมแสงสะท้อนวิ่งผ่าน */
         .line-btn {
             display: flex;
             align-items: center;
@@ -229,7 +225,6 @@
             20%, 100% { left: 200%; }
         }
 
-        /* Modal Popup แอดมินลับ */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -331,7 +326,6 @@
 </head>
 <body>
 
-    <!-- พื้นหลังก้อนสีเบลออลังการ -->
     <div class="blobs">
         <div class="blob blob-1"></div>
         <div class="blob blob-2"></div>
@@ -339,17 +333,11 @@
     </div>
 
     <div class="card">
-        <!-- ไอคอนตกแต่งทึบ (Solid Icons) รอบการ์ด -->
-        <svg class="decor d-1" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z"/>
-        </svg>
+        <svg class="decor d-1" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z"/></svg>
         <div class="decor decor-bubble d-2"></div>
-        <svg class="decor d-3" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z"/>
-        </svg>
+        <svg class="decor d-3" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z"/></svg>
         <div class="decor decor-bubble d-4"></div>
 
-        <!-- รูปโปรไฟล์ -->
         <div class="profile-container">
             <img src="logo.JPG" alt="Logo" class="profile-img" onerror="this.src='https://via.placeholder.com/135/bae6fd/ffffff?text=Logo'">
         </div>
@@ -362,7 +350,7 @@
 
         <div id="statusBadge" class="status-badge" style="background-color: #d1fae5; color: #065f46;">
             <span id="statusDot" class="status-dot" style="background-color: #10b981;"></span>
-            <span id="statusText">กำลังซิงค์ข้อมูล...</span>
+            <span id="statusText">กำลังโหลดข้อมูลออนไลน์...</span>
         </div>
 
         <a href="https://lin.ee/5mrH0GV" target="_blank" class="line-btn">
@@ -371,10 +359,10 @@
         </a>
     </div>
 
-    <!-- Modal Popup แอดมินลับ -->
+    <!-- Modal Popup แอดมิน -->
     <div id="statusModal" class="modal-overlay">
         <div class="modal">
-            <h3>แก้ไขสถานะร้านค้า (ออนไลน์)</h3>
+            <h3>อัปเดตสถานะ (ทุกคนเห็นตรงกัน)</h3>
             <label for="statusInput">ข้อความสถานะ:</label>
             <input type="text" id="statusInput" placeholder="พิมพ์ข้อความสถานะ...">
             
@@ -388,15 +376,27 @@
 
             <div class="modal-btns">
                 <button class="modal-btn btn-cancel" onclick="closeModal()">ยกเลิก</button>
-                <button class="modal-btn btn-save" onclick="saveStatus()">อัปเดตออนไลน์</button>
+                <button class="modal-btn btn-save" onclick="saveStatusOnline()">บันทึกออนไลน์</button>
             </div>
         </div>
     </div>
 
     <script>
-        /* ระบบฐานข้อมูลออนไลน์กลางฟรี (JsonBin) */
-        const BIN_ID = "6712b7aead19ca34f8c14833"; 
-        const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+        // โค้ดที่ดึงมาจาก Firebase ของคุณ
+        const firebaseConfig = {
+            apiKey: "AIzaSyA8Kie6ru4JII_4Wwt4DB1RlHcTuQl2TF0",
+            authDomain: "melobyshop1.firebaseapp.com",
+            databaseURL: "https://melobyshop1-default-rtdb.firebaseio.com",
+            projectId: "melobyshop1",
+            storageBucket: "melobyshop1.firebasestorage.app",
+            messagingSenderId: "1050307582267",
+            appId: "1:1050307582267:web:03a66de926696fc23abf1e",
+            measurementId: "G-LBZ585CDQR"
+        };
+
+        // เริ่มต้น Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
         const statusBadge = document.getElementById('statusBadge');
         const statusModal = document.getElementById('statusModal');
@@ -414,33 +414,25 @@
             statusDot.style.setProperty('--pulse-color', color);
         }
 
-        // ดึงข้อมูลสถานะล่าสุดจากคลาวด์มาแสดงผลให้ทุกคนเห็นตรงกันทันทีที่เปิดเว็บ
-        async function fetchOnlineStatus() {
-            try {
-                let response = await fetch(`${API_URL}/latest`, {
-                    headers: { 'X-Master-Key': '' } // ใช้โหมดสาธารณะ
-                });
-                let data = await response.json();
-                if(data && data.record) {
-                    let rec = data.record;
-                    statusText.innerText = rec.text || "เปิดรับออร์เดอร์ปกติ";
-                    selectedBg = rec.bg || "#d1fae5";
-                    selectedColor = rec.color || "#065f46";
-                    selectedDot = rec.dot || "#10b981";
-
-                    statusBadge.style.backgroundColor = selectedBg;
-                    statusBadge.style.color = selectedColor;
-                    statusDot.style.backgroundColor = selectedDot;
-                    updatePulseColor(selectedDot);
-                }
-            } catch (err) {
-                // กรณีดึงเน็ตไม่ได้ ให้ใช้ค่าสำรองกันเว็บค้าง
+        // ดึงข้อมูล Realtime 
+        const statusRef = database.ref('shop_status');
+        statusRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                statusText.innerText = data.text;
+                selectedBg = data.bg;
+                selectedColor = data.color;
+                selectedDot = data.dot;
+                
+                statusBadge.style.backgroundColor = selectedBg;
+                statusBadge.style.color = selectedColor;
+                statusDot.style.backgroundColor = selectedDot;
+                updatePulseColor(selectedDot);
+            } else {
                 statusText.innerText = "เปิดรับออร์เดอร์ปกติ";
                 updatePulseColor("#10b981");
             }
-        }
-
-        fetchOnlineStatus();
+        });
 
         colorOpts.forEach(opt => {
             opt.addEventListener('click', () => {
@@ -452,17 +444,14 @@
             });
         });
 
-        // ระบบกดค้าง 2 วินาทีเพื่อเปิดแผงแอดมินลับ
+        // ระบบกดค้าง 2 วิ
         const startHold = (e) => {
             holdTimer = setTimeout(() => {
                 statusInput.value = statusText.innerText;
                 statusModal.classList.add('active');
             }, 2000);
         };
-
-        const cancelHold = () => {
-            clearTimeout(holdTimer);
-        };
+        const cancelHold = () => clearTimeout(holdTimer);
 
         statusBadge.addEventListener('mousedown', startHold);
         statusBadge.addEventListener('mouseup', cancelHold);
@@ -475,35 +464,16 @@
             statusModal.classList.remove('active');
         }
 
-        // บันทึกสถานะใหม่ขึ้นคลาวด์ออนไลน์ เพื่อให้ทุกคนเห็นตรงกันทันที
-        async function saveStatus() {
+        // บันทึกขึ้น Firebase
+        function saveStatusOnline() {
             const newText = statusInput.value.trim();
             if(newText) {
-                statusText.innerText = newText;
-                statusBadge.style.backgroundColor = selectedBg;
-                statusBadge.style.color = selectedColor;
-                statusDot.style.backgroundColor = selectedDot;
-                updatePulseColor(selectedDot);
-
-                let payload = {
+                database.ref('shop_status').set({
                     text: newText,
                     bg: selectedBg,
                     color: selectedColor,
                     dot: selectedDot
-                };
-
-                try {
-                    await fetch(API_URL, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Master-Key': ''
-                        },
-                        body: JSON.stringify(payload)
-                    });
-                } catch (err) {
-                    console.error("บันทึกออนไลน์ไม่สำเร็จ");
-                }
+                });
             }
             closeModal();
         }
