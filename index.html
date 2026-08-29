@@ -114,7 +114,7 @@
             100% { box-shadow: 0 0 30px rgba(2, 132, 199, 0.8); }
         }
 
-        /* ชื่อร้านสีวิ่ง (ล้อกกรอบขนาดและตำแหน่งให้นิ่งสนิท ไม่ขยับ) */
+        /* ชื่อร้านสีวิ่ง */
         .shop-name {
             font-size: 27px;
             font-weight: 600;
@@ -127,8 +127,8 @@
             letter-spacing: 0.5px;
             position: relative;
             z-index: 3;
-            display: inline-block; /* ล็อกขนาดบล็อกข้อความให้อยู่ตรงกลางเป๊ะ */
-            will-change: background-position; /* ป้องกันการกระตุกของฮาร์ดแวร์เรนเดอร์ */
+            display: inline-block;
+            will-change: background-position;
         }
         @keyframes gradientShift {
             0% { background-position: 0% 50%; }
@@ -362,7 +362,7 @@
 
         <div id="statusBadge" class="status-badge" style="background-color: #d1fae5; color: #065f46;">
             <span id="statusDot" class="status-dot" style="background-color: #10b981;"></span>
-            <span id="statusText">เปิดรับออร์เดอร์ปกติ</span>
+            <span id="statusText">กำลังซิงค์ข้อมูล...</span>
         </div>
 
         <a href="https://lin.ee/5mrH0GV" target="_blank" class="line-btn">
@@ -374,7 +374,7 @@
     <!-- Modal Popup แอดมินลับ -->
     <div id="statusModal" class="modal-overlay">
         <div class="modal">
-            <h3>แก้ไขสถานะร้านค้า</h3>
+            <h3>แก้ไขสถานะร้านค้า (ออนไลน์)</h3>
             <label for="statusInput">ข้อความสถานะ:</label>
             <input type="text" id="statusInput" placeholder="พิมพ์ข้อความสถานะ...">
             
@@ -388,12 +388,16 @@
 
             <div class="modal-btns">
                 <button class="modal-btn btn-cancel" onclick="closeModal()">ยกเลิก</button>
-                <button class="modal-btn btn-save" onclick="saveStatus()">บันทึก</button>
+                <button class="modal-btn btn-save" onclick="saveStatus()">อัปเดตออนไลน์</button>
             </div>
         </div>
     </div>
 
     <script>
+        /* ระบบฐานข้อมูลออนไลน์กลางฟรี (JsonBin) */
+        const BIN_ID = "6712b7aead19ca34f8c14833"; 
+        const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
         const statusBadge = document.getElementById('statusBadge');
         const statusModal = document.getElementById('statusModal');
         const statusInput = document.getElementById('statusInput');
@@ -410,20 +414,33 @@
             statusDot.style.setProperty('--pulse-color', color);
         }
 
-        // โหลดข้อมูลจาก LocalStorage ทันทีโดยไม่ติดขัด
-        if(localStorage.getItem('shop_status_text')) {
-            statusText.innerText = localStorage.getItem('shop_status_text');
-            selectedBg = localStorage.getItem('shop_status_bg') || selectedBg;
-            selectedColor = localStorage.getItem('shop_status_color') || selectedColor;
-            selectedDot = localStorage.getItem('shop_status_dot') || selectedDot;
-            
-            statusBadge.style.backgroundColor = selectedBg;
-            statusBadge.style.color = selectedColor;
-            statusDot.style.backgroundColor = selectedDot;
-            updatePulseColor(selectedDot);
-        } else {
-            updatePulseColor(selectedDot);
+        // ดึงข้อมูลสถานะล่าสุดจากคลาวด์มาแสดงผลให้ทุกคนเห็นตรงกันทันทีที่เปิดเว็บ
+        async function fetchOnlineStatus() {
+            try {
+                let response = await fetch(`${API_URL}/latest`, {
+                    headers: { 'X-Master-Key': '' } // ใช้โหมดสาธารณะ
+                });
+                let data = await response.json();
+                if(data && data.record) {
+                    let rec = data.record;
+                    statusText.innerText = rec.text || "เปิดรับออร์เดอร์ปกติ";
+                    selectedBg = rec.bg || "#d1fae5";
+                    selectedColor = rec.color || "#065f46";
+                    selectedDot = rec.dot || "#10b981";
+
+                    statusBadge.style.backgroundColor = selectedBg;
+                    statusBadge.style.color = selectedColor;
+                    statusDot.style.backgroundColor = selectedDot;
+                    updatePulseColor(selectedDot);
+                }
+            } catch (err) {
+                // กรณีดึงเน็ตไม่ได้ ให้ใช้ค่าสำรองกันเว็บค้าง
+                statusText.innerText = "เปิดรับออร์เดอร์ปกติ";
+                updatePulseColor("#10b981");
+            }
         }
+
+        fetchOnlineStatus();
 
         colorOpts.forEach(opt => {
             opt.addEventListener('click', () => {
@@ -458,7 +475,8 @@
             statusModal.classList.remove('active');
         }
 
-        function saveStatus() {
+        // บันทึกสถานะใหม่ขึ้นคลาวด์ออนไลน์ เพื่อให้ทุกคนเห็นตรงกันทันที
+        async function saveStatus() {
             const newText = statusInput.value.trim();
             if(newText) {
                 statusText.innerText = newText;
@@ -467,11 +485,25 @@
                 statusDot.style.backgroundColor = selectedDot;
                 updatePulseColor(selectedDot);
 
-                // บันทึกลงในเครื่องทันที
-                localStorage.setItem('shop_status_text', newText);
-                localStorage.setItem('shop_status_bg', selectedBg);
-                localStorage.setItem('shop_status_color', selectedColor);
-                localStorage.setItem('shop_status_dot', selectedDot);
+                let payload = {
+                    text: newText,
+                    bg: selectedBg,
+                    color: selectedColor,
+                    dot: selectedDot
+                };
+
+                try {
+                    await fetch(API_URL, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': ''
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                } catch (err) {
+                    console.error("บันทึกออนไลน์ไม่สำเร็จ");
+                }
             }
             closeModal();
         }
